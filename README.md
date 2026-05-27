@@ -42,6 +42,29 @@ print(state["sfm_analysis"])
 print(state["sfm_monitor"])
 ```
 
+## Hugging Face Space demo
+
+A ready-to-copy Gradio demo is included in:
+
+```text
+huggingface_space/
+  app.py
+  requirements.txt
+  README.md
+```
+
+It installs `langgraph-sfm` from PyPI and exposes an interactive agent-intent monitor with:
+
+- declared goal
+- proposed agent action
+- candidate goals
+- observed effects
+- SFM analysis
+- allow / review / block gate
+- monitor trace
+
+To deploy it, create a new Hugging Face Space with SDK `Gradio`, then copy the files from `huggingface_space/` into the Space repository.
+
 ## What is inside
 
 ```text
@@ -49,6 +72,7 @@ sfm_langgraph/   # LangGraph-compatible node, monitor and CLI
 sfm/             # bundled full SFM core and its required support modules
 tests/           # public smoke/contract tests
 examples/        # quickstart examples
+huggingface_space/ # Gradio demo files for Hugging Face Spaces
 ```
 
 The bundled core keeps the public repository clean: instead of publishing many top-level internal packages (`amantia`, `runtime`, `scm_parts`, etc.), they live inside `sfm/`. A small compatibility bootstrap preserves the core's internal imports.
