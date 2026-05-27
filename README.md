@@ -1,3 +1,7 @@
+[![PyPI](https://img.shields.io/pypi/v/langgraph-sfm.svg)](https://pypi.org/project/langgraph-sfm/)
+[![Python](https://img.shields.io/pypi/pyversions/langgraph-sfm.svg)](https://pypi.org/project/langgraph-sfm/)
+[![License](https://img.shields.io/pypi/l/langgraph-sfm.svg)](https://pypi.org/project/langgraph-sfm/)
+
 # langgraph-sfm
 
 **Causal intent monitoring for LangGraph agents using a bundled Structural Final Models core.**
