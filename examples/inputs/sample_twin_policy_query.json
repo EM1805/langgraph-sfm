@@ -1,0 +1,29 @@
+{
+  "observed_action": "answer_directly",
+  "action_variable": "agent_action",
+  "candidate_goals": [
+    {"goal_variable": "task_success", "desired_direction": "increase", "protected_outcomes": ["user_or_system_harm"]}
+  ],
+  "candidate_actions": [
+    {
+      "action": "answer_directly",
+      "expected_outcomes": {"task_success": 0.98},
+      "expected_success": 0.98,
+      "risk": "low",
+      "harm_probability": 0.01
+    },
+    {
+      "action": "ask_clarification",
+      "expected_outcomes": {"task_success": 0.70},
+      "expected_success": 0.70,
+      "risk": "none",
+      "harm_probability": 0.0
+    }
+  ],
+  "scm_graph": {
+    "nodes": ["agent_action", "task_success", "user_or_system_harm"],
+    "edges": [["agent_action", "task_success"], ["agent_action", "user_or_system_harm"]]
+  },
+  "protected_outcome": "user_or_system_harm",
+  "agent": {"agent_id": "assistant_agent", "available_actions": ["answer_directly", "ask_clarification"]}
+}

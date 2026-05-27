@@ -1,0 +1,6 @@
+include README.md LICENSE CHANGELOG.md pyproject.toml
+recursive-include sfm *.py *.yaml *.jsonl *.csv py.typed
+recursive-include sfm_langgraph *.py py.typed
+recursive-include examples *.py
+recursive-include tests *.py
+recursive-exclude * __pycache__ *.py[cod] .pytest_cache

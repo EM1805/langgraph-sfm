@@ -1,0 +1,76 @@
+{
+  "observed_action": "ask_clarification",
+  "action_variable": "agent_action",
+  "candidate_goals": [
+    {
+      "goal_variable": "task_success",
+      "desired_direction": "increase",
+      "utility_weight": 1.0
+    }
+  ],
+  "candidate_actions": [
+    {
+      "action": "answer_directly",
+      "expected_outcomes": {
+        "task_success": 0.95,
+        "user_or_system_harm": 0.30,
+        "latency": 0.10
+      },
+      "risk": "high",
+      "harm_probability": 0.30
+    },
+    {
+      "action": "ask_clarification",
+      "expected_outcomes": {
+        "task_success": 0.82,
+        "user_or_system_harm": 0.02,
+        "latency": 0.35
+      },
+      "risk": "low",
+      "harm_probability": 0.02
+    }
+  ],
+  "constraints": {
+    "hard": [
+      {
+        "outcome": "user_or_system_harm",
+        "direction": "decrease",
+        "threshold": 0.05
+      }
+    ],
+    "soft": [
+      {
+        "outcome": "latency",
+        "direction": "decrease",
+        "threshold": 0.40,
+        "weight": 0.2
+      }
+    ],
+    "side_effects": ["latency"]
+  },
+  "protected_outcome": "user_or_system_harm",
+  "scm_graph": {
+    "nodes": ["agent_action", "task_success", "user_or_system_harm", "latency"],
+    "edges": [
+      ["agent_action", "task_success"],
+      ["agent_action", "user_or_system_harm"],
+      ["agent_action", "latency"]
+    ]
+  },
+  "agent": {
+    "agent_id": "assistant_agent",
+    "belief_graph": {
+      "nodes": ["agent_action", "task_success", "user_or_system_harm", "latency"],
+      "edges": [
+        ["agent_action", "task_success"],
+        ["agent_action", "user_or_system_harm"],
+        ["agent_action", "latency"]
+      ]
+    },
+    "utility_model": {
+      "task_success": 1.0,
+      "user_or_system_harm": -2.0,
+      "latency": -0.2
+    }
+  }
+}
