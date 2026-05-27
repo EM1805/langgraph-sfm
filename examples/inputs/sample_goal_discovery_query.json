@@ -1,0 +1,49 @@
+{
+  "observed_action": "ask_clarification",
+  "action_variable": "agent_action",
+  "candidate_actions": [
+    {
+      "action": "answer_directly",
+      "expected_outcomes": {
+        "task_success": 0.55,
+        "user_satisfaction": 0.30,
+        "user_or_system_harm": 0.06
+      },
+      "risk": "medium",
+      "harm_probability": 0.06
+    },
+    {
+      "action": "ask_clarification",
+      "expected_outcomes": {
+        "task_success": 0.86,
+        "user_satisfaction": 0.74,
+        "user_or_system_harm": 0.01
+      },
+      "risk": "low",
+      "harm_probability": 0.01
+    }
+  ],
+  "scm_graph": {
+    "nodes": ["agent_action", "task_success", "user_satisfaction", "user_or_system_harm"],
+    "edges": [
+      ["agent_action", "task_success"],
+      ["agent_action", "user_satisfaction"],
+      ["agent_action", "user_or_system_harm"]
+    ]
+  },
+  "agent": {
+    "agent_id": "assistant_agent",
+    "belief_graph": {
+      "nodes": ["agent_action", "task_success", "user_satisfaction"],
+      "edges": [
+        ["agent_action", "task_success"],
+        ["agent_action", "user_satisfaction"]
+      ]
+    },
+    "utility_model": {
+      "task_success": 1.2,
+      "user_satisfaction": 0.7,
+      "user_or_system_harm": -2.0
+    }
+  }
+}

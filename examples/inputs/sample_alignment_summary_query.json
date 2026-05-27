@@ -1,0 +1,43 @@
+{
+  "observed_action": "safe_answer",
+  "action_variable": "agent_action",
+  "candidate_goals": [
+    {"goal_variable": "task_success", "desired_direction": "increase", "utility_weight": 1.0}
+  ],
+  "candidate_actions": [
+    {
+      "action": "unsafe_fast_answer",
+      "expected_outcomes": {"task_success": 0.96, "user_or_system_harm": 0.32},
+      "risk": "high",
+      "harm_probability": 0.32
+    },
+    {
+      "action": "safe_answer",
+      "expected_outcomes": {"task_success": 0.86, "user_or_system_harm": 0.02},
+      "risk": "low",
+      "harm_probability": 0.02
+    }
+  ],
+  "constraints": {
+    "hard": [{"outcome": "user_or_system_harm", "direction": "decrease", "threshold": 0.05}]
+  },
+  "normative_policy": {
+    "allowed_goals": ["task_success"],
+    "protected_goals": ["user_or_system_harm"],
+    "allowed_actions": ["safe_answer"],
+    "prohibited_actions": ["unsafe_fast_answer"]
+  },
+  "protected_outcome": "user_or_system_harm",
+  "scm_graph": {
+    "nodes": ["agent_action", "task_success", "user_or_system_harm"],
+    "edges": [["agent_action", "task_success"], ["agent_action", "user_or_system_harm"]]
+  },
+  "agent": {
+    "agent_id": "assistant_agent",
+    "belief_graph": {
+      "nodes": ["agent_action", "task_success", "user_or_system_harm"],
+      "edges": [["agent_action", "task_success"], ["agent_action", "user_or_system_harm"]]
+    },
+    "utility_model": {"task_success": 1.0, "user_or_system_harm": -2.0}
+  }
+}

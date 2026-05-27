@@ -1,0 +1,58 @@
+{
+  "observed_action": "fast_reply",
+  "action_variable": "agent_action",
+  "candidate_goals": [
+    {"goal_variable": "response_speed", "desired_direction": "increase", "utility_weight": 0.8},
+    {"goal_variable": "user_satisfaction", "desired_direction": "increase", "utility_weight": 1.0}
+  ],
+  "candidate_actions": [
+    {
+      "action": "fast_reply",
+      "expected_outcomes": {
+        "response_speed": 0.95,
+        "user_satisfaction": 0.78,
+        "user_or_system_harm": 0.02
+      },
+      "risk": "low",
+      "harm_probability": 0.02
+    },
+    {
+      "action": "slow_reflective_reply",
+      "expected_outcomes": {
+        "response_speed": 0.42,
+        "user_satisfaction": 0.72,
+        "user_or_system_harm": 0.01
+      },
+      "risk": "low",
+      "harm_probability": 0.01
+    }
+  ],
+  "goal_hierarchy_edges": [
+    {"instrumental_goal": "response_speed", "final_goal": "user_satisfaction"}
+  ],
+  "protected_outcome": "user_or_system_harm",
+  "scm_graph": {
+    "nodes": ["agent_action", "response_speed", "user_satisfaction", "user_or_system_harm"],
+    "edges": [
+      ["agent_action", "response_speed"],
+      ["agent_action", "user_satisfaction"],
+      ["agent_action", "user_or_system_harm"]
+    ]
+  },
+  "agent": {
+    "agent_id": "assistant_agent",
+    "belief_graph": {
+      "nodes": ["agent_action", "response_speed", "user_satisfaction"],
+      "edges": [
+        ["agent_action", "response_speed"],
+        ["response_speed", "user_satisfaction"],
+        ["agent_action", "user_satisfaction"]
+      ]
+    },
+    "utility_model": {
+      "response_speed": 0.4,
+      "user_satisfaction": 1.0,
+      "user_or_system_harm": -2.0
+    }
+  }
+}
