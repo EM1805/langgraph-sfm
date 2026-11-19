@@ -222,6 +222,41 @@ def _requires_review(analysis: Mapping[str, Any], event_type: str, config: SFMAg
     return event_type in {"blocked", "deception_alert", "side_effect_alert", "risk_alert"}
 
 
+def _prior_events_for_run(
+    state: StateMapping, config: SFMAgentMonitorConfig, run_id: str
+) -> List[Dict[str, Any]]:
+    """Do not import monitor history from a different agent run.
+
+    Events made by this monitor have an event_id of `run_id:step`. Because
+    run IDs can themselves contain colons, parse the final suffix. Manually
+    supplied events without a trustworthy run identifier are not carried
+    into a running monitor; they may still be reported via `report()`.
+    """
+    kept: List[Dict[str, Any]] = []
+    for item in _as_list(state.get(config.events_key)):
+        if not isinstance(item, Mapping):
+            continue
+        explicit = _clean_str(item.get("run_id"))
+        if explicit:
+            matches = explicit == run_id
+        else:
+            prefix, sep, suffix = _clean_str(item.get("event_id")).rpartition(":")
+            matches = bool(sep) and prefix == run_id and suffix.isdecimal()
+        if matches:
+            kept.append(dict(item))
+    return kept[-config.max_events:]
+
+
+def _next_step_index(prior: Sequence[Mapping[str, Any]]) -> int:
+    """Continue event numbering even when bounded history is evicted."""
+    indices = [
+        index for event in prior
+        for index in [event.get("step_index")]
+        if type(index) is int and index >= 1
+    ]
+    return max(indices, default=0) + 1
+
+
 def _to_event(analysis: Mapping[str, Any], *, step_index: int, run_id: str, config: SFMAgentMonitorConfig) -> SFMRiskEvent:
     risk = _risk_score(analysis)
     event_type = _event_type(analysis, risk)
@@ -346,12 +381,17 @@ class SFMAgentMonitor:
 
     def __init__(self, config: Optional[SFMAgentMonitorConfig] = None) -> None:
         self.config = config or SFMAgentMonitorConfig()
+        if self.config.max_events < 1:
+            raise ValueError("max_events must be at least 1")
 
     def event_from_state(self, state: StateMapping) -> SFMRiskEvent:
         analysis = _as_dict(state.get(self.config.analysis_key))
         run_id = _clean_str(state.get(self.config.run_id_key), self.config.default_run_id)
-        prior = _as_list(state.get(self.config.events_key))[-self.config.max_events :]
-        return _to_event(analysis, step_index=len(prior) + 1, run_id=run_id, config=self.config)
+        prior = _prior_events_for_run(state, self.config, run_id)
+        return _to_event(
+            analysis, step_index=_next_step_index(prior),
+            run_id=run_id, config=self.config,
+        )
 
     def report(self, events: Sequence[Mapping[str, Any]], *, run_id: str = "") -> Dict[str, Any]:
         return build_sfm_run_report(
@@ -362,10 +402,29 @@ class SFMAgentMonitor:
 
     def __call__(self, state: StateMapping) -> Dict[str, Any]:
         run_id = _clean_str(state.get(self.config.run_id_key), self.config.default_run_id)
-        prior = [dict(item) for item in _as_list(state.get(self.config.events_key))][-self.config.max_events :]
+        prior = _prior_events_for_run(state, self.config, run_id)
         event = self.event_from_state(state).to_dict()
-        events = [*prior, event][-self.config.max_events :]
+        events = [*prior, event][-self.config.max_events:]
         report = self.report(events, run_id=run_id)
+
+        # A bounded event list is a display window, not authority to erase a
+        # prior blocked/review decision. Preserve the earlier run-level gate
+        # only if the prior report belongs to this run. New run IDs reset it.
+        prior_report = _as_dict(state.get(self.config.output_key))
+        if _clean_str(prior_report.get("run_id")) == run_id:
+            previous = _clean_str(prior_report.get("final_gate_status")).lower()
+            current = _clean_str(report.get("final_gate_status"), "review").lower()
+            severity = {"allow": 0, "review": 1, "block": 2}
+            if severity.get(previous, 0) > severity.get(current, 0):
+                report["final_gate_status"] = previous
+                report["human_review_required"] = True
+                report["reason_codes"] = sorted(set([
+                    *report.get("reason_codes", []), "SFM_HISTORY_GATE_RETAINED",
+                ]))
+                report["limits"] = sorted(set([
+                    *report.get("limits", []),
+                    "Prior gate is retained even when its event leaves the bounded history window.",
+                ]))
         return {
             self.config.events_key: events,
             self.config.output_key: report,
