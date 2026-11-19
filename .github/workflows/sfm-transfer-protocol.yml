@@ -1,0 +1,41 @@
+name: SFM Transfer Protocol Genesis — synthetic evidence
+
+on:
+  push:
+    branches:
+      - protocol-genesis/transfer-feedback-shadow-20261119
+  pull_request:
+    paths:
+      - 'sfm_langgraph/transfer.py'
+      - 'benchmarks/sfm_transfer_benchmark.py'
+      - 'tests/test_sfm_transfer_protocol.py'
+      - 'docs/TRANSFER_PROTOCOL_V01.md'
+      - '.github/workflows/sfm-transfer-protocol.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shadow-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONHASHSEED: '0'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e ".[test]"
+      - name: Falsification, leakage, and native monitor non-bypass tests
+        run: python -m pytest -q tests/test_sfm_transfer_protocol.py tests/test_sfm_monitor_run_isolation.py
+      - name: Synthetic preregistered transfer benchmark
+        run: python -m benchmarks.sfm_transfer_benchmark --output transfer-evidence/result.json
+      - name: Upload inspectable evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: sfm-transfer-protocol-research-only
+          path: transfer-evidence/result.json
+          if-no-files-found: error
